@@ -1,0 +1,23 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2008
+
+Project("{AADDC345-4CCB-EFBB-2D8D-8461F8F7F481}") = "noise", "Assembly-CSharp.csproj", "{477A2300-60C8-555A-70E4-93F861E8961E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{477A2300-60C8-555A-70E4-93F861E8961E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{477A2300-60C8-555A-70E4-93F861E8961E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{477A2300-60C8-555A-70E4-93F861E8961E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{477A2300-60C8-555A-70E4-93F861E8961E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Assembly-CSharp.csproj
+	EndGlobalSection
+EndGlobal
