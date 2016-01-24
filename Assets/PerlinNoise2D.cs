@@ -1,37 +1,68 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Assets
 {
+    [CustomEditor(typeof(PerlinNoise2D))]
+    public class PerlinNoise2DEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            var element = (PerlinNoise2D)target;
+
+            var seedType = element.GetType().GetField("Seed");
+            element.Seed = EditorGUILayout.IntSlider("Seed", element.Seed, (int)GetMinimum(seedType), (int)GetMaximum(seedType));
+
+
+            var powerType = element.GetType().GetField("Power");
+            element.Power = EditorGUILayout.IntSlider("Power", element.Power, (int)GetMinimum(powerType), (int)GetMaximum(powerType));
+            EditorGUILayout.LabelField("Resolution", element.Resolution.ToString());
+        }
+
+        private static float GetMinimum(MemberInfo type)
+        {
+            return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof (RangeAttribute))).min;
+        }
+
+        private static float GetMaximum(MemberInfo type)
+        {
+            return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof(RangeAttribute))).max;
+        }
+    }
+
     public class PerlinNoise2D : Noise2D
     {
         [Range(4, 16)]
-        public int Power = 8;
+        public int Power;
 
         [Range(1, 100)]
-        public int Seed = 50;
+        public int Seed;
+
+        public int Resolution { get { return 1 << Power; } }
 
         private readonly Vector2[] _gradients =
         {
             new Vector2(0, 1), new Vector2(0, -1),
             new Vector2(1, 0), new Vector2(-1, 0)
         };
-
-        private int _resolution;
+        
         private int[] _permutations;
 
-        public void Start()
+        public void Awake()
         {
-            _resolution = 1 << Power;
-            _permutations = new int[2 * _resolution];
+            _permutations = new int[2 * Resolution];
 
-            var range = Enumerable.Range(0, _resolution).ToList();
+            var range = Enumerable.Range(0, Resolution).ToList();
             Shuffle(range, Seed);
 
             //duplicate permutations for wrapped index lookup
-            for (var i = 0; i < 2 * _resolution; i++)
-                _permutations[i] = range[i % _resolution];
+            for (var i = 0; i < 2 * Resolution; i++)
+                _permutations[i] = range[i % Resolution];
         }
 
         ////Fisher-Yates Shuffle
@@ -72,8 +103,8 @@ namespace Assets
             var deltaY = y - minimumY;
 
             //wrap integers to resolution limit
-            minimumX = minimumX & _resolution - 1;
-            minimumY = minimumY & _resolution - 1;
+            minimumX = minimumX & Resolution - 1;
+            minimumY = minimumY & Resolution - 1;
 
             //hashed gradient indices based on deterministic lookup in permutations array via vertex coordinates (this is the reason for the double length array to avoid wrapping issues)
             var gradientIndex00 = _permutations[minimumX + _permutations[minimumY]] % 4;

@@ -1,32 +1,69 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Assets
 {
+    [CustomEditor(typeof(PerlinNoise3D))]
+    public class PerlinNoise3DEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            var element = (PerlinNoise3D)target;
+
+            var seedType = element.GetType().GetField("Seed");
+            element.Seed = EditorGUILayout.IntSlider("Seed", element.Seed, (int)GetMinimum(seedType), (int)GetMaximum(seedType));
+
+
+            var powerType = element.GetType().GetField("Power");
+            element.Power = EditorGUILayout.IntSlider("Power", element.Power, (int)GetMinimum(powerType), (int)GetMaximum(powerType));
+            EditorGUILayout.LabelField("Resolution", element.Resolution.ToString());
+        }
+
+        private static float GetMinimum(MemberInfo type)
+        {
+            return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof(RangeAttribute))).min;
+        }
+
+        private static float GetMaximum(MemberInfo type)
+        {
+            return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof(RangeAttribute))).max;
+        }
+    }
+
     public class PerlinNoise3D : Noise3D
     {
+        [Range(4, 16)]
+        public int Power;
+
+        [Range(1, 100)]
+        public int Seed;
+
+        public int Resolution { get { return 1 << Power; } }
+
         private readonly Vector3[] _gradients =
         {
             new Vector3(1, 1, 0), new Vector3(-1, 1, 0), new Vector3(1, -1, 0), new Vector3(-1, -1, 0),
             new Vector3(1, 0, 1), new Vector3(-1, 0, 1), new Vector3(1, 0, -1), new Vector3(-1, 0, -1),
             new Vector3(0, 1, 1), new Vector3(0, -1, 1), new Vector3(0, 1, -1), new Vector3(0, -1, -1)
         };
+        
+        private int[] _permutations;
 
-        private readonly int _resolution;
-        private readonly int[] _permutations;
-
-        public PerlinNoise3D(int power, int seed)
+        public void Awake()
         {
-            _resolution = 1 << power;
-            _permutations = new int[2 * _resolution];
+            _permutations = new int[2 * Resolution];
 
-            var range = Enumerable.Range(0, _resolution).ToList();
-            Shuffle(range, seed);
+            var range = Enumerable.Range(0, Resolution).ToList();
+            Shuffle(range, Seed);
 
             //duplicate permutations for wrapped index lookup
-            for (var i = 0; i < 2 * _resolution; i++)
-                _permutations[i] = range[i % _resolution];
+            for (var i = 0; i < 2 * Resolution; i++)
+                _permutations[i] = range[i % Resolution];
         }
 
         ////Fisher-Yates Shuffle
@@ -69,9 +106,9 @@ namespace Assets
             var deltaZ = z - minimumZ;
 
             //wrap integers to resolution limit
-            minimumX = minimumX & _resolution - 1;
-            minimumY = minimumY & _resolution - 1;
-            minimumZ = minimumZ & _resolution - 1;
+            minimumX = minimumX & Resolution - 1;
+            minimumY = minimumY & Resolution - 1;
+            minimumZ = minimumZ & Resolution - 1;
 
             //hashed gradient indices based on deterministic lookup in permutations array via vertex coordinates (this is the reason for the double length array to avoid wrapping issues)
             var gradientIndex000 = _permutations[minimumX + _permutations[minimumY + _permutations[minimumZ]]] % 12;
