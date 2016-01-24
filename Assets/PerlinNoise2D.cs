@@ -4,29 +4,30 @@ using UnityEngine;
 
 namespace Assets
 {
-    public interface INoise2D
+    public class PerlinNoise2D : Noise2D
     {
-        float Noise(float x, float y);
-    }
+        [Range(4, 16)]
+        public int Power = 8;
 
-    public class PerlinNoise2D : INoise2D
-    {
+        [Range(1, 100)]
+        public int Seed = 50;
+
         private readonly Vector2[] _gradients =
         {
             new Vector2(0, 1), new Vector2(0, -1),
             new Vector2(1, 0), new Vector2(-1, 0)
         };
 
-        private readonly int _resolution;
-        private readonly int[] _permutations;
+        private int _resolution;
+        private int[] _permutations;
 
-        public PerlinNoise2D(int power, int seed)
+        public void Start()
         {
-            _resolution = 1 << power;
+            _resolution = 1 << Power;
             _permutations = new int[2 * _resolution];
 
             var range = Enumerable.Range(0, _resolution).ToList();
-            Shuffle(range, seed);
+            Shuffle(range, Seed);
 
             //duplicate permutations for wrapped index lookup
             for (var i = 0; i < 2 * _resolution; i++)
@@ -61,7 +62,7 @@ namespace Assets
             return x * (x * (x * (10 + (x * (6 * x - 15)))));
         }
 
-        public float Noise(float x, float y)
+        public override float Noise(float x, float y)
         {
             var minimumX = Mathf.FloorToInt(x);
             var minimumY = Mathf.FloorToInt(y);

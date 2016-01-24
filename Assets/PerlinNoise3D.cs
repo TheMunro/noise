@@ -4,12 +4,7 @@ using UnityEngine;
 
 namespace Assets
 {
-    public interface INoise3D
-    {
-        float Noise(float x, float y, float z);
-    }
-
-    public class PerlinNoise3D : INoise3D
+    public class PerlinNoise3D : Noise3D
     {
         private readonly Vector3[] _gradients =
         {
@@ -62,7 +57,7 @@ namespace Assets
             return x * (x * (x * (10 + (x * (6 * x - 15)))));
         }
 
-        public float Noise(float x, float y, float z)
+        public override float Noise(float x, float y, float z)
         {
             var minimumX = Mathf.FloorToInt(x);
             var minimumY = Mathf.FloorToInt(y);

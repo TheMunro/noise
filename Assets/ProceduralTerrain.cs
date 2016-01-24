@@ -3,47 +3,39 @@ using UnityEngine;
 
 namespace Assets
 {
+    [RequireComponent(typeof(ProceduralTerrainSettings))]
     public class ProceduralTerrain : MonoBehaviour
     {
-        [Range(4, 16)]
-        public int Power = 8;
-
-        [Range(1, 100)]
-        public int Seed = 50;
-
-        public int Width = 64;
-        public int Height = 5;
-        public int Depth = 64;
-
-        private INoise2D _perlin2D;
         private Terrain _terrain;
+        private ProceduralTerrainSettings _settings;
+
+        public  Noise2D NoiseGenerator;
+
 
         void Start ()
         {
-            _perlin2D = new PerlinNoise2D(Power, Seed);
+            _settings = GetComponent<ProceduralTerrainSettings>();
+            //var texture = new Texture2D(Length, Length);
 
-            var texture = new Texture2D(Width, Depth);
+            //for (var z = 0; z < Length; z++)
+            //{
+            //    for (var x = 0; x < Length; x++)
+            //    {
+            //        var xCoordinate = (Density * x) / Length;
+            //        var zCoordinate = (Density * z) / Length;
 
-            
-            for (var z = 0; z < Depth; z++)
-            {
-                for (var x = 0; x < Width; x++)
-                {
-                    var xCoordinate = (8f * x) / Width;
-                    var zCoordinate = (8f * z) / Depth;
+            //        var noise = 0.5f * (NoiseGenerator.Noise(xCoordinate, zCoordinate) + 1);
+            //        //var noise = Mathf.PerlinNoise(xCoordinate, zCoordinate);
+            //        texture.SetPixel(x, z, new Color(noise, noise, noise));
+            //    }
+            //}
 
-                    var noise = 0.5f * (_perlin2D.Noise(xCoordinate, zCoordinate) + 1);
-                    //var noise = Mathf.PerlinNoise(xCoordinate, zCoordinate);
-                    texture.SetPixel(x, z, new Color(noise, noise, noise));
-                }
-            }
+            //// Encode texture into PNG
+            //var bytes = texture.EncodeToPNG();
+            //Object.Destroy(texture);
 
-            // Encode texture into PNG
-            var bytes = texture.EncodeToPNG();
-            Object.Destroy(texture);
-
-            // For testing purposes, also write to a file in the project folder
-            File.WriteAllBytes(Application.dataPath + "/../Perlin.png", bytes);
+            //// For testing purposes, also write to a file in the project folder
+            //File.WriteAllBytes(Application.dataPath + "/../Perlin.png", bytes);
 
             CreateTerrain();
         }
@@ -51,30 +43,30 @@ namespace Assets
         public void CreateTerrain()
         {
             var terrainData = new TerrainData();
-            terrainData.heightmapResolution = Height +1;
-            terrainData.alphamapResolution = Height + 1;
 
             var heightmap = GetHeightmap();
             terrainData.SetHeights(0, 0, heightmap);
-            terrainData.size = new Vector3(Width, Height, Depth);
+            terrainData.size = new Vector3(_settings.Length, _settings.Height, _settings.Length);
 
             var terrain = Terrain.CreateTerrainGameObject(terrainData);
             _terrain = terrain.GetComponent<Terrain>();
+            
             _terrain.Flush();
         }
 
         private float[,] GetHeightmap()
         {
-            var heightmap = new float[Height, Height];
+            var resolution = _settings.HeightMapResolution;
+            var heightmap = new float[resolution, resolution];
 
-            for (var z = 0; z < Height; z++)
+            for (var z = 0; z < resolution; z++)
             {
-                for (var x = 0; x < Height; x++)
+                for (var x = 0; x < resolution; x++)
                 {
-                    var xCoordinate = (8f * x) / Width;
-                    var zCoordinate = (8f * z) / Depth;
+                    var xCoordinate = (8f * x) / resolution;
+                    var zCoordinate = (8f * z) / resolution;
 
-                    heightmap[x, z] = _perlin2D.Noise(xCoordinate, zCoordinate);
+                    heightmap[x, z] = NoiseGenerator.Noise(xCoordinate, zCoordinate);
                 }
             }
 
