@@ -1,9 +1,7 @@
-﻿using System;
-using System.Reflection;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-namespace Assets
+namespace Assets.Scripts
 {
     [CustomEditor(typeof(ProceduralTerrainSettings))]
     public class ProceduralTerrainSettingsEditor : Editor
@@ -13,8 +11,8 @@ namespace Assets
             DrawDefaultInspector();
 
             var element = (ProceduralTerrainSettings)target;
-            EditorGUILayout.LabelField("AlphaMapResolution", element.AlphaMapResolution.ToString());
-            EditorGUILayout.LabelField("HeightMapResolution", element.HeightMapResolution.ToString());
+            EditorGUILayout.LabelField("Alpha Map Resolution", element.AlphaMapResolution.ToString());
+            EditorGUILayout.LabelField("Height Map Resolution", element.HeightMapResolution.ToString());
         }
 
         //private static float GetMinimum(MemberInfo type)
@@ -33,8 +31,8 @@ namespace Assets
         [Range(1, 1000)]
         public int Length = 250;
 
-        [Range(1, 25)]
-        public int Height = 5;
+        [Range(1, 100)]
+        public int Height = 50;
 
         [Range(1f, 16f)]
         public float Density = 8f;
@@ -51,5 +49,6 @@ namespace Assets
 
         public Texture2D FlatTexture;
         public Texture2D SteepTexture;
+        public Material TerrainMaterial;
     }
 }

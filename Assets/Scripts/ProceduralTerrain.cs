@@ -1,7 +1,6 @@
-﻿using System.IO;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Assets
+namespace Assets.Scripts
 {
     [RequireComponent(typeof(Noise2D))]
     [RequireComponent(typeof(ProceduralTerrainSettings))]
@@ -52,14 +51,19 @@ namespace Assets
 
             var heightmap = GetHeightmap();
             data.SetHeights(0, 0, heightmap);
-            data.size = new Vector3(_settings.Length, _settings.Height, _settings.Length);
-
             ApplyTextures(data);
+
+            data.size = new Vector3(_settings.Length, _settings.Height, _settings.Length);
 
             var terrain = Terrain.CreateTerrainGameObject(data);
             terrain.transform.position = new Vector3(-0.5f * _settings.Length, 0, -0.5f * _settings.Length);
 
             _terrain = terrain.GetComponent<Terrain>();
+            _terrain.heightmapPixelError = 8;
+            _terrain.materialType = Terrain.MaterialType.Custom;
+            _terrain.materialTemplate = _settings.TerrainMaterial;
+            _terrain.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+
             _terrain.Flush();
         }
 
@@ -89,7 +93,7 @@ namespace Assets
                     var normalizedZ = (float)z / (data.alphamapHeight - 1);
 
                     var steepness = data.GetSteepness(normalizedX, normalizedZ);
-                    var steepnessNormalized = Mathf.Clamp(steepness / 1.5f, 0, 1f);
+                    var steepnessNormalized = Mathf.Clamp(steepness , 0, 1f);
 
                     splatMap[z, x, 0] = 1f - steepnessNormalized;
                     splatMap[z, x, 1] = steepnessNormalized;

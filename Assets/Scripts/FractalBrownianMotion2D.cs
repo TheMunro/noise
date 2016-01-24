@@ -12,7 +12,7 @@ namespace Assets
         [Range(1f, 4f)]
         public float Lacunarity = 2.1042f;
 
-        [Range(0.0625f, 16f)]
+        [Range(0.05f, 0.75f)]
         public float Persistence = 0.5f;
 
         public override float Noise(float x, float y)
