@@ -1,67 +1,93 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEditor;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
+    [CustomEditor(typeof(ProceduralTerrain))]
+    public class ProceduralTerrainEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            DrawDefaultInspector();
+
+            var element = (ProceduralTerrain)target;
+            if (GUILayout.Button("Generate Texture"))
+                CreateTexture(element);
+        }
+
+        private static void CreateTexture(ProceduralTerrain element)
+        {
+            var path = EditorUtility.SaveFilePanel("Save Texture", string.Empty, "texture.png", "png");
+            if (string.IsNullOrEmpty(path))
+                return;
+
+            var resolution = element.Settings.HeightMapResolution;
+            var texture = new Texture2D(resolution, resolution);
+
+            for (var z = 0; z < resolution; z++)
+            {
+                for (var x = 0; x < resolution; x++)
+                {
+                    var xCoordinate = (element.Settings.Density * x) / resolution;
+                    var zCoordinate = (element.Settings.Density * z) / resolution;
+
+                    var noise = 0.5f * (element.NoiseGenerator.Noise(xCoordinate, zCoordinate) + 1);
+                    texture.SetPixel(x, z, new Color(noise, noise, noise));
+                }
+            }
+
+            // Encode texture into PNG
+            var bytes = texture.EncodeToPNG();
+            Destroy(texture);
+            //File.WriteAllBytes(Application.dataPath + "/../Perlin.png", bytes);
+            File.WriteAllBytes(path, bytes);
+        }
+
+        //private static float GetMinimum(MemberInfo type)
+        //{
+        //    return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof (RangeAttribute))).min;
+        //}
+
+        //private static float GetMaximum(MemberInfo type)
+        //{
+        //    return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof(RangeAttribute))).max;
+        //}
+    }
+
     [RequireComponent(typeof(Noise2D))]
     [RequireComponent(typeof(ProceduralTerrainSettings))]
     public class ProceduralTerrain : MonoBehaviour
     {
         private Terrain _terrain;
-        private ProceduralTerrainSettings _settings;
 
-        public  Noise2D NoiseGenerator;
+        public Noise2D NoiseGenerator;
+        public ProceduralTerrainSettings Settings;
 
         void Start ()
         {
-            _settings = GetComponent<ProceduralTerrainSettings>();
-            //CreateTexture();
             CreateTerrain();
         }
-
-        //private void CreateTexture()
-        //{ 
-        //    var resolution = _settings.HeightMapResolution;
-        //    var texture = new Texture2D(resolution, resolution);
-
-        //    for (var z = 0; z < resolution; z++)
-        //    {
-        //        for (var x = 0; x < resolution; x++)
-        //        {
-        //            var xCoordinate = (_settings.Density * x) / resolution;
-        //            var zCoordinate = (_settings.Density * z) / resolution;
-                    
-        //            var noise = 0.5f * (NoiseGenerator.Noise(xCoordinate, zCoordinate) + 1);
-        //            texture.SetPixel(x, z, new Color(noise, noise, noise));
-        //        }
-        //    }
-
-        //    // Encode texture into PNG
-        //    var bytes = texture.EncodeToPNG();
-        //    Destroy(texture);
-
-        //    // For testing purposes, also write to a file in the project folder
-        //    File.WriteAllBytes(Application.dataPath + "/../Perlin.png", bytes);
-        //}
 
         public void CreateTerrain()
         {
             var data = new TerrainData();
-            data.alphamapResolution = _settings.AlphaMapResolution;
-            data.heightmapResolution = _settings.HeightMapResolution;
+            data.alphamapResolution = Settings.AlphaMapResolution;
+            data.heightmapResolution = Settings.HeightMapResolution;
 
             var heightmap = GetHeightmap();
             data.SetHeights(0, 0, heightmap);
             ApplyTextures(data);
 
-            data.size = new Vector3(_settings.Length, _settings.Height, _settings.Length);
+            data.size = new Vector3(Settings.Length, Settings.Height, Settings.Length);
 
             var terrain = Terrain.CreateTerrainGameObject(data);
-            terrain.transform.position = new Vector3(-0.5f * _settings.Length, 0, -0.5f * _settings.Length);
+            terrain.transform.position = new Vector3(-0.5f * Settings.Length, 0, -0.5f * Settings.Length);
 
             _terrain = terrain.GetComponent<Terrain>();
             _terrain.heightmapPixelError = 8;
             _terrain.materialType = Terrain.MaterialType.Custom;
-            _terrain.materialTemplate = _settings.TerrainMaterial;
+            _terrain.materialTemplate = Settings.TerrainMaterial;
             _terrain.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
 
             _terrain.Flush();
@@ -72,8 +98,8 @@ namespace Assets.Scripts
             var flatSplat = new SplatPrototype();
             var steepSplat = new SplatPrototype();
 
-            flatSplat.texture = _settings.FlatTexture;
-            steepSplat.texture = _settings.SteepTexture;
+            flatSplat.texture = Settings.FlatTexture;
+            steepSplat.texture = Settings.SteepTexture;
 
             data.splatPrototypes = new []
             {
@@ -105,15 +131,15 @@ namespace Assets.Scripts
 
         private float[,] GetHeightmap()
         {
-            var resolution = _settings.HeightMapResolution;
+            var resolution = Settings.HeightMapResolution;
             var heightmap = new float[resolution, resolution];
 
             for (var z = 0; z < resolution; z++)
             {
                 for (var x = 0; x < resolution; x++)
                 {
-                    var xCoordinate = (_settings.Density * x) / resolution;
-                    var zCoordinate = (_settings.Density * z) / resolution;
+                    var xCoordinate = (Settings.Density * x) / resolution;
+                    var zCoordinate = (Settings.Density * z) / resolution;
 
                     var noise = 0.5f * (NoiseGenerator.Noise(xCoordinate, zCoordinate) + 1);
                     heightmap[x, z] = noise;

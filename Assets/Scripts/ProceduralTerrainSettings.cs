@@ -26,7 +26,7 @@ namespace Assets.Scripts
         //}
     }
 
-    class ProceduralTerrainSettings : MonoBehaviour
+    public class ProceduralTerrainSettings : MonoBehaviour
     {
         [Range(1, 1000)]
         public int Length = 250;
