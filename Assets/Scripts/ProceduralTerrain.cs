@@ -118,8 +118,8 @@ namespace Assets.Scripts
                     var normalizedX = (float)x / (data.alphamapWidth - 1);
                     var normalizedZ = (float)z / (data.alphamapHeight - 1);
 
-                    var steepness = data.GetSteepness(normalizedX, normalizedZ);
-                    var steepnessNormalized = Mathf.Clamp(steepness , 0, 1f);
+                    var steepness = data.GetSteepness(normalizedX, normalizedZ) * Settings.SteepnessTextureMultiplier;
+                    var steepnessNormalized = Mathf.Clamp(steepness, 0, 1f);
 
                     splatMap[z, x, 0] = 1f - steepnessNormalized;
                     splatMap[z, x, 1] = steepnessNormalized;

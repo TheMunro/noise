@@ -46,7 +46,10 @@ namespace Assets.Scripts
         public int AlphaMapPower = 8;
 
         public int AlphaMapResolution { get { return (1 << AlphaMapPower) + 1; } }
-
+		
+        [Range(1f, 5f)]
+        public float SteepnessTextureMultiplier = 1f; 
+		
         public Texture2D FlatTexture;
         public Texture2D SteepTexture;
         public Material TerrainMaterial;
