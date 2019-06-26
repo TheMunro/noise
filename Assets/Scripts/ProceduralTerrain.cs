@@ -4,56 +4,56 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
-    [CustomEditor(typeof(ProceduralTerrain))]
-    public class ProceduralTerrainEditor : Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            DrawDefaultInspector();
+    //[CustomEditor(typeof(ProceduralTerrain))]
+    //public class ProceduralTerrainEditor : Editor
+    //{
+    //    public override void OnInspectorGUI()
+    //    {
+    //        DrawDefaultInspector();
 
-            var element = (ProceduralTerrain)target;
-            if (GUILayout.Button("Generate Texture"))
-                CreateTexture(element);
-        }
+    //        var element = (ProceduralTerrain)target;
+    //        if (GUILayout.Button("Generate Texture"))
+    //            CreateTexture(element);
+    //    }
 
-        private static void CreateTexture(ProceduralTerrain element)
-        {
-            var path = EditorUtility.SaveFilePanel("Save Texture", string.Empty, "texture.png", "png");
-            if (string.IsNullOrEmpty(path))
-                return;
+    //    private static void CreateTexture(ProceduralTerrain element)
+    //    {
+    //        var path = EditorUtility.SaveFilePanel("Save Texture", string.Empty, "texture.png", "png");
+    //        if (string.IsNullOrEmpty(path))
+    //            return;
 
-            var resolution = element.Settings.HeightMapResolution;
-            var texture = new Texture2D(resolution, resolution);
+    //        var resolution = element.Settings.HeightMapResolution;
+    //        var texture = new Texture2D(resolution, resolution);
 
-            for (var z = 0; z < resolution; z++)
-            {
-                for (var x = 0; x < resolution; x++)
-                {
-                    var xCoordinate = (element.Settings.Density * x) / resolution;
-                    var zCoordinate = (element.Settings.Density * z) / resolution;
+    //        for (var z = 0; z < resolution; z++)
+    //        {
+    //            for (var x = 0; x < resolution; x++)
+    //            {
+    //                var xCoordinate = (element.Settings.Density * x) / resolution;
+    //                var zCoordinate = (element.Settings.Density * z) / resolution;
 
-                    var noise = 0.5f * (element.NoiseGenerator.Noise(xCoordinate, zCoordinate) + 1);
-                    texture.SetPixel(x, z, new Color(noise, noise, noise));
-                }
-            }
+    //                var noise = 0.5f * (element.NoiseGenerator.Noise(xCoordinate, zCoordinate) + 1);
+    //                texture.SetPixel(x, z, new Color(noise, noise, noise));
+    //            }
+    //        }
 
-            // Encode texture into PNG
-            var bytes = texture.EncodeToPNG();
-            Destroy(texture);
-            //File.WriteAllBytes(Application.dataPath + "/../Perlin.png", bytes);
-            File.WriteAllBytes(path, bytes);
-        }
+    //        // Encode texture into PNG
+    //        var bytes = texture.EncodeToPNG();
+    //        Destroy(texture);
+    //        //File.WriteAllBytes(Application.dataPath + "/../Perlin.png", bytes);
+    //        File.WriteAllBytes(path, bytes);
+    //    }
 
-        //private static float GetMinimum(MemberInfo type)
-        //{
-        //    return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof (RangeAttribute))).min;
-        //}
+    //    //private static float GetMinimum(MemberInfo type)
+    //    //{
+    //    //    return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof (RangeAttribute))).min;
+    //    //}
 
-        //private static float GetMaximum(MemberInfo type)
-        //{
-        //    return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof(RangeAttribute))).max;
-        //}
-    }
+    //    //private static float GetMaximum(MemberInfo type)
+    //    //{
+    //    //    return ((RangeAttribute)Attribute.GetCustomAttribute(type, typeof(RangeAttribute))).max;
+    //    //}
+    //}
 
     [RequireComponent(typeof(Noise2D))]
     [RequireComponent(typeof(ProceduralTerrainSettings))]
@@ -82,6 +82,7 @@ namespace Assets.Scripts
             data.size = new Vector3(Settings.Length, Settings.Height, Settings.Length);
 
             var terrain = Terrain.CreateTerrainGameObject(data);
+            terrain.transform.parent = transform;
             terrain.transform.position = new Vector3(-0.5f * Settings.Length, 0, -0.5f * Settings.Length);
 
             _terrain = terrain.GetComponent<Terrain>();
